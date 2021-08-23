@@ -1,0 +1,8 @@
+NAME:
+  Com2Sense_Axe
+EMAIL:
+  ..@..
+AFFILIATION:
+  USC-UCLA
+DESCRIPTION:    # Word Limit: 30
+  DeBERTa-XL model from HuggingFace finetuned on C2S.

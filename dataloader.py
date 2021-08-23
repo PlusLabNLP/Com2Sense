@@ -14,7 +14,7 @@ class BaseDataset(Dataset):
     """
     Base class for Datasets
     """
-    def __init__(self, split, tokenizer, max_seq_len=128, text2text=True, uniqa = False):
+    def __init__(self, split, tokenizer, max_seq_len=128, text2text=True, uniqa=False, is_leaderboard=False):
         """
         Processes raw dataset
 
@@ -29,12 +29,15 @@ class BaseDataset(Dataset):
         self.text2text = text2text
         self.tok_name = tokenizer
         self.uniqa = uniqa
+        self.is_leaderboard = is_leaderboard
+
         # Tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(self.tok_name)
 
         # Process dataset (in subclass)
         self.data = None
 
+    # REPLACE -------------------
     def _preprocess(self, data_dir):
         """
         Called within the __init__() of subclasses as follows: \n
@@ -51,6 +54,7 @@ class BaseDataset(Dataset):
     def get_tokenizer(self):
         return self.tokenizer
 
+    # Remove These *********
     @staticmethod
     def _get_dataset(name, **kwargs):
         """Datasets to concatenate"""
@@ -86,7 +90,9 @@ class BaseDataset(Dataset):
         datasets = ConcatDataset(datasets)
 
         return datasets
+    # *******************************
 
+    # REPLACE -------------------
     @staticmethod
     def _prepare_text2text(record):
         """
@@ -120,10 +126,10 @@ class BaseDataset(Dataset):
             # Format input & label
             text, label = self._prepare_text2text(record)
             if self.uniqa:
-              text = text.split(':')[1][1:]
-              text = 'Is the following sentence correct?\n' + text
-              label = label.replace('false', 'no')
-              label = label.replace('true', 'yes')
+                text = text.split(':')[1][1:]
+                text = 'Is the following sentence correct?\n' + text
+                label = label.replace('false', 'no')
+                label = label.replace('true', 'yes')
             target_len = 2
             # Tokenize
             input_encoded = self.tokenizer.encode_plus(text=text,
@@ -167,10 +173,14 @@ class BaseDataset(Dataset):
             token_ids = torch.tensor(tokens['input_ids'])
             attn_mask = torch.tensor(tokens['attention_mask'])
 
-      # Output
+            # Output
             sample = {'tokens': token_ids,
                 'attn_mask': attn_mask,
                 'label': label}
+
+            if self.is_leaderboard:
+                sample['_id'] = record['_id']
+
         return sample
 
 

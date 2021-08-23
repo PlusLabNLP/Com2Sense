@@ -58,6 +58,18 @@ class Transformer(nn.Module):
 
             return logit
 
+    def inference(self, inp) -> list:
+        """
+        Used for inference-only (Leaderboard)
+        :param inp: batch of `tokens` (input_ids) and `attn_mask` (attention_mask)
+        :return: predicted labels (0,1)
+        """
+        logit = self.forward(inp)                   # [B, C]
+
+        pred_labels = logit.argmax(dim=1).tolist()   # [B]
+
+        return pred_labels
+
     def generate(self, **kwargs):
         return self.model.generate(**kwargs)
 

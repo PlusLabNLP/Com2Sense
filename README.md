@@ -6,12 +6,7 @@
 This repo contains the dataset and baseline model weights for 
 [Com2Sense](https://arxiv.org/abs/2106.00969) Benchmark.
 
-*TODO*:
- 
-We will create the Official Leaderboard by August 1st, 
-and corresponding evaluation script (eval.py)
-
-Add Link to BigBench
+It also provides access to Leaderboard submission.
 
 ---
 
@@ -27,7 +22,7 @@ Add Link to BigBench
 
 -  [Training](#Training)
 
--  [Evaluation](#Evaluation)
+-  [Inference](#Inference)
 
 -  [Leaderboard](#Leaderboard)
   
@@ -110,17 +105,20 @@ The log directory for this sample script would be `./results/roberta/demo/`
 The Train & Validation metrics are logged to TensorBoard.
  
 ```bash
-$ tensorboard --logdir path-to-log-directory
+$ tensorboard --logdir ...
 ```
 
+Note: `logdir = expt_dir/expt_name/run_name/`
 
 
 ---
 
  
-## Evaluation
+## Inference
+   
+**TO-DO**
 
-  To evaluate trained models modify the following script:
+For inference on **dev set**, we can modify as follows ([test.sh](./test.sh)):
   
 
 ```bash
@@ -137,6 +135,38 @@ $ python3 main.py \
 
 ## Leaderboard
 
-> TODO: August 1st
+To evaluate on the **official test set**, we have two modes:
+
+- **Evaluation**
+
+Run with `eval` mode
+    
+```bash
+$ python3 leaderboard.py \
+--mode eval \
+--ckpt /expt_dir/expt_name/run_name/model.pth
+```
+
+Output:
+
+```
+{
+    'pairwise': 0.25,
+    'standard': 0.50
+}
+```
+
+- **Submit**
+
+Fill in the information in `submit.yaml`, and then run with `submit` mode
+    
+```bash
+$ python3 leaderboard.py \
+--mode submit \
+--ckpt /expt_dir/expt_name/run_name/model.pth \
+--user_info ./submit.yaml
+```
+
+You can view the leaderboard at `URL`
 
 ---
