@@ -8,7 +8,8 @@ from sklearn.metrics import accuracy_score, classification_report
 
 
 @torch.no_grad()
-def compute_eval_metrics(model, dataloader, device, size, tokenizer, text2text = False, is_pairwise=False, is_test=False, parallel = False):
+def compute_eval_metrics(model, dataloader, device, size, tokenizer, text2text=False, is_pairwise=False, is_test=False,
+                         parallel=False):
     """
     For the given model, computes accuracy & loss on validation/test set.
 
@@ -43,12 +44,12 @@ def compute_eval_metrics(model, dataloader, device, size, tokenizer, text2text =
             # Forward Pass (predict)
             if parallel:
                 label_pred = model.module.generate(input_ids=batch['input_tokens'],
-                                        attention_mask=batch['input_attn_mask'],
-                                        max_length=2)
+                                                   attention_mask=batch['input_attn_mask'],
+                                                   max_length=2)
             else:
                 label_pred = model.generate(input_ids=batch['input_tokens'],
-                                        attention_mask=batch['input_attn_mask'],
-                                        max_length=2)
+                                            attention_mask=batch['input_attn_mask'],
+                                            max_length=2)
             label_pred = [decode(x).strip() for x in label_pred]
 
             label_gt = batch['target_tokens']
@@ -102,7 +103,6 @@ def compute_eval_metrics(model, dataloader, device, size, tokenizer, text2text =
 
 
 def _pairwise_acc(y_gt, y_pred):
-
     assert len(y_gt) == len(y_pred) and len(y_gt) % 2 == 0, 'Invalid Inputs for Pairwise setup'
 
     res = [y_gt[i] == y_pred[i] for i in range(len(y_gt))]
@@ -180,7 +180,7 @@ def _shuffle(lst):
     return lst
 
 
-def train_val_split(data, train_ratio=0.6 , dev_ratio = 0.2, test_ratio = 0.2):
+def train_val_split(data, train_ratio=0.6, dev_ratio=0.2, test_ratio=0.2):
     # Shuffle & Split data
     _shuffle(data)
     split_idx = int(len(data) * train_ratio)
@@ -192,7 +192,7 @@ def train_val_split(data, train_ratio=0.6 , dev_ratio = 0.2, test_ratio = 0.2):
     rest = data[split_idx:]
     dev_split = int(dev_ratio * len(data))
     data_val = rest[:dev_split]
-    rest = rest[dev_split: ]
+    rest = rest[dev_split:]
     test_split = int(test_ratio * len(data))
     data_test = rest[:test_split]
     return data_train, data_val, data_test

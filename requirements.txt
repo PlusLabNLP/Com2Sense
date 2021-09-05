@@ -7,3 +7,4 @@ tqdm==4.45.0
 tensorboardX==2.1
 sentencepiece==0.1.91
 requests
+pyyaml

@@ -135,6 +135,11 @@ $ python3 main.py \
 
 ## Leaderboard
 
+To test your own model, modify the line 128:
+```
+model = Transformer(args.model, args.num_cls, text2text, num_layers=args.num_layers)
+```
+
 To evaluate on the **official test set**, we have two modes:
 
 - **Evaluation**
