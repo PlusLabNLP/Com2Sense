@@ -39,20 +39,23 @@ com2sense
 ├── train.json
 ├── dev.json
 └── test.json
+
+com2sense
+├── pair_id_train.json
+├── pair_id_dev.son
+└── pair_id_test.json
 ```
 
-Each file has the following format:
+Each data file has the following format:
 
 ```
 
 [   
     {
         "id": "",
-        "sent_1": "",
-        "sent_2": "",
-        "label_1": "",
-        "label_2": "",
-        "domain": "", 
+        "sent": "",
+        "label": "",
+        "domain": "",
         "scenario": "",
         "numeracy": ""
     },
@@ -62,6 +65,8 @@ Each file has the following format:
 ```
 
 For test.json, the ground-truth labels are excluded.
+
+Pair id files are used to get data pair information and could be used to calculate pairwise accuracy.
 
 ---
 
