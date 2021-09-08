@@ -2,6 +2,7 @@
 Preprocessing Commonsense Datasets
 """
 import os
+import json
 import torch
 import random
 import pandas as pd
@@ -46,66 +47,48 @@ class BaseDataset(Dataset):
         self.data = self._preprocess(data_dir)
 
     def _preprocess(self, data_dir):
-        """
-        Parses raw dataset file (jsonl). \n
-        The complementary sentences are unpaired and treated as independent samples.
+        data_path = os.path.join(data_dir, f'{self.split}.json')
+        with open(data_path, 'r') as f:
+            data_file = json.load(f)
 
-        Input:
-            [
-                {_id: _, 'sent_1': ___, 'label_1': _, 'sent_2': ___, 'label_2': _},
-                ...
-                {_id: _, 'sent_1': ___, 'label_1': _, 'sent_2': ___, 'label_2': _}
-            ]
+        # we use pair id to get pairwise acc
+        pair_id_path = os.path.join(data_dir, f'pair_id_{self.split}.json')
+        with open(pair_id_path, 'r') as f:
+            data_ids = json.load(f)
 
-        Output:
-            [
-                {_id: _, 'sent_1': ___, 'label_1': 1/0},
-                {_id: _, 'sent_2': ___, 'label_2': 1/0},
-                ...
-                {_id: _, 'sent_1': ___, 'label_1': 1/0},
-                {_id: _, 'sent_2': ___, 'label_2': 1/0}
-            ]
-
-        :param str data_dir: path to dataset dir
-        :returns: sentence, label
-        :rtype: list[dict]
-        """
-        path = os.path.join(data_dir, f'{self.split}.json')
-
-        # Read data
-        df = pd.read_json(path)
-
-        # Map labels
-        label2int = {'True': 1, 'False': 0}
-
-        if self.split != "test":
-            df['label_1'] = df['label_1'].apply(lambda l: label2int[l])
-            df['label_2'] = df['label_2'].apply(lambda l: label2int[l])
-        else:
-            df['label_1'] = -1
-            df['label_2'] = -1
-
-        raw_data = df.to_dict(orient='records')
-
-        # add index for pairs
-        # TODO remove later
-        if self.split == "train":
-            for i, pair in enumerate(raw_data):
-                pair['_id'] = i
-        else:
-            # update: Use the database ID
-            for i, pair in enumerate(raw_data):
-                pair['_id'] = pair['id']
-
+        data_df = pd.DataFrame(data_file)
+        pairs_map = pd.DataFrame.from_dict(data_ids, orient='index').reset_index()
+        pairs_map.columns = ['id1', 'id2']
+        joined = pd.merge(data_df, pairs_map, left_on='id', right_on='id1')
+        joined_final = pd.merge(joined, data_df, left_on='id2', right_on='id')
+        joined_final = joined_final.drop(columns=['id_x', 'id_y', 'domain_y', 'scenario_y', 'numeracy_y'])
+        joined_final = joined_final.rename(
+            columns={'sent_x': 'sent1', 'label_x': 'label1', 'domain_x': 'domain', 'scenario_x': 'scenario',
+                     'numeracy_x': 'numeracy', 'sent_y': 'sent2', 'label_y': 'label2'})
+        picked_ids = []
+        df = joined_final.to_dict(orient='records')
         data = []
-        for pair in raw_data:
-            sample_1 = dict(_id=pair['_id'], text=pair['sent_1'], label=pair['label_1'])
-            sample_2 = dict(_id=pair['_id'], text=pair['sent_2'], label=pair['label_2'])
-            data.extend([sample_1, sample_2])
+        label_to_int = {'False': 0, 'True': 1}
+
+        for d in df:
+            if d['id1'] not in picked_ids:
+                picked_ids.extend([d['id1'], d['id2']])
+            else:
+                continue
+            if self.split == 'test':
+                sample1 = dict(_id=d['id1'], text=d['sent1'], label=-1)
+                sample2 = dict(_id=d['id2'], text=d['sent2'], label=-1)
+            else:
+                sample1 = dict(_id=d['id1'], text=d['sent1'], label=label_to_int[d['label1']])
+                sample2 = dict(_id=d['id2'], text=d['sent2'], label=label_to_int[d['label2']])
+            data.append(sample1)
+            data.append(sample2)
 
         if self.split == 'train':
             random.seed(0)
             random.shuffle(data)
+
+        # print(data[:10])
         return data
 
     def __len__(self):

@@ -34,7 +34,7 @@ def evaluate(args, model):
     uniqa = ('unified' in args.model)
 
     # Dataloader
-    dataset = BaseDataset(args.test_file, tokenizer=args.model, max_seq_len=args.seq_len, text2text=text2text,
+    dataset = BaseDataset('test', tokenizer=args.model, max_seq_len=args.seq_len, text2text=text2text,
                           uniqa=uniqa)
 
     loader = DataLoader(dataset, batch_size=1, num_workers=args.num_workers)
@@ -79,6 +79,7 @@ def evaluate(args, model):
     output = []
 
     # Regrouping single sample predictions to pairs
+    # use the first id as the pair id
     for i in range(0, len(preds), 2):
         # PREDICTIONS: pred = {'id': _, 'pred_1': 'True', 'pred_2': 'False'}
         pred_1 = 'True' if preds[i][0] == 1 else 'False'
@@ -106,9 +107,6 @@ def main():
     # Data params
     parser.add_argument('--pred_file', type=str, help='address of prediction csv file, for "test" mode',
                         default='results.csv')
-    # TODO remove later
-    parser.add_argument('--test_file', type=str, default='test',
-                        help='The file containing test data to evaluate in test mode.')
 
     # GPU params
     parser.add_argument('--gpu_ids', type=str, help='GPU IDs (0,1,2,..) seperated by comma', default='0')
